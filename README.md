@@ -22,8 +22,11 @@ Space Shooter is a socket game. It uses #ezyfox-server and #MongoDB for server s
  
  
  1. Clone source code
- 2. Move to ```unity/Assets``` folder
- 3. Clone ```ezyfox-server-csharp-client``` by commands:
+ 2. Run command (to pull submodules)
+
+ ```bash
+ git submodule update --init --recursive
+ ```
  
  ```bash
 git init
