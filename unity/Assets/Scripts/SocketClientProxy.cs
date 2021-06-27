@@ -26,11 +26,8 @@ class HandshakeHandler : EzyHandshakeHandler
         return new EzyLoginRequest(
             SocketClientProxy.ZONE_NAME,
             SocketClientProxy.getInstance().username,
-            SocketClientProxy.getInstance().password,
-            EzyEntityFactory.newArrayBuilder()
-                .append("gameName", SocketClientProxy.GAME_NAME)
-                .build()
-            );
+            SocketClientProxy.getInstance().password
+        );
     }
 }
 
@@ -60,8 +57,7 @@ class AppAccessHandler : EzyAppAccessHandler
     protected override void postHandle(EzyApp app, EzyArray data)
     {
         var request = EzyEntityFactory.newObject();
-        request.put("gameName", SocketClientProxy.GAME_NAME);
-        app.send("reconnect", request);
+        app.send("access", request);
     }
 }
 
@@ -90,9 +86,8 @@ class StartGameResponseHandler : EzyAbstractAppDataHandler<EzyObject>
 }
 public class SocketClientProxy
 {
-    public const string GAME_NAME = "space-shooter";
-    public const string ZONE_NAME = "space-shooter";
-    public const string APP_NAME = "space-shooter";
+    public const string ZONE_NAME = "breaking-game";
+    public const string APP_NAME = "breaking-game";
 
     public string username;
     public string password;
@@ -128,9 +123,11 @@ public class SocketClientProxy
         setup.addDataHandler(EzyCommand.APP_ACCESS, new AppAccessHandler());
         setup.addDataHandler(EzyCommand.UDP_HANDSHAKE, new UdpHandshakeHandler());
         var appSetup = setup.setupApp(APP_NAME);
-        appSetup.addDataHandler("reconnect", new ReconnectResponseHandler());
-        appSetup.addDataHandler("getGameId", new GetGameIdResponseHandler());
-        appSetup.addDataHandler("startGame", new StartGameResponseHandler());
+        appSetup.addDataHandler(Commands.ACCESS_GAME, new ReconnectResponseHandler());
+        appSetup.addDataHandler(Commands.PLAYER_ACCESS_GAME, new GetGameIdResponseHandler());
+        appSetup.addDataHandler(Commands.PLAYER_EXIT_GAME, new StartGameResponseHandler());
+        appSetup.addDataHandler(Commands.SYNC_POSITION, new StartGameResponseHandler());
+        appSetup.addDataHandler(Commands.SYNC_DATA, new StartGameResponseHandler());
         appAccessed = false;
     }
 
@@ -149,7 +146,7 @@ public class SocketClientProxy
     {
         if (!isConnected())
         {
-            socketClient.connect("127.0.0.1", 3005);
+            socketClient.connect("tvd12.com", 3005);
         }
     }
 
@@ -176,16 +173,6 @@ public class SocketClientProxy
         reconnectedCallback = callback;
     }
 
-    public void emitGameIdReceived(EzyObject data)
-    {
-        gameIdReceivedCallback(data);
-    }
-
-    public void onGameIdReceived(ObjectCallback callback)
-    {
-        gameIdReceivedCallback = callback;
-    }
-
     public void emitStartGame(EzyObject data)
     {
         startGameCallback(data);
@@ -207,52 +194,25 @@ public class SocketClientProxy
         disconnectedCallback = callback;
     }
 
-    public void getGameId()
+    public void startGame()
     {
-        var request = EzyEntityFactory.newObject();
-        request.put("gameName", GAME_NAME);
-        socketClient.getApp().send("getGameId", request);
+        var request = EzyEntityFactory.newObjectBuilder()
+            .append("command", "startGame")
+            .build();
+        socketClient.getApp().send(Commands.SYNC_DATA, request);
     }
 
-    public void startGame(long gameId)
+    public void finishGame()
     {
-        var request = EzyEntityFactory.newObject();
-        request.put("gameName", GAME_NAME);
-        request.put("gameId", gameId);
-        socketClient.getApp().send("startGame", request);
+        var request = EzyEntityFactory.newObjectBuilder()
+            .append("command", "finishgame")
+            .build();
+        socketClient.getApp().send(Commands.SYNC_DATA, request);
     }
 
-    public void finishGame(long gameId)
-    {
-        var request = EzyEntityFactory.newObject();
-        request.put("gameName", GAME_NAME);
-        request.put("gameId", gameId);
-        socketClient.getApp().send("finishGame", request);
-    }
-
-    public void syncScore(long gameId, long score)
-    {
-        var request = EzyEntityFactory.newObject();
-        request.put("gameName", GAME_NAME);
-        request.put("gameId", gameId);
-        request.put("score", score);
-        socketClient.getApp().send("updateScore", request);
-    }
-
-    public void deleteGameObject(long gameId, int objectId)
-    {
-        var request = EzyEntityFactory.newObject();
-        request.put("gameName", GAME_NAME);
-        request.put("gameId", gameId);
-        request.put("objectId", objectId);
-        socketClient.getApp().send("deleteGameObject", request);
-    }
-
-    public void syncPosition(long gameId,
-                    string objectName,
+    public void syncPosition(
                     int objectType,
                     int objectId,
-                    bool visible,
                     double x,
                     double y,
                     double z
@@ -262,22 +222,15 @@ public class SocketClientProxy
         {
             return;
         }
-        var position = EzyEntityFactory.newObject();
-        position.put("x", x);
-        position.put("y", y);
-        position.put("z", z);
-        var request = EzyEntityFactory.newObject();
-        request.put("gameName", GAME_NAME);
-        request.put("gameId", gameId);
-        request.put("objectId", objectId);
-        request.put("objectName", objectName);
-        request.put("objectType", objectType);
-        request.put("visible", visible);
-        request.put("position", position);
+        var request = EzyEntityFactory.newArrayBuilder()
+            .append(objectType)
+            .append(objectId)
+            .append(x, y, z)
+            .build();
         var app = socketClient.getApp();
         if (app != null)
         {
-            app.udpSend("syncPosition", request);
+            app.udpSend(Commands.SYNC_POSITION, request);
         }
     }
 }

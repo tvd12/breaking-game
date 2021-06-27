@@ -3,7 +3,6 @@ using UnityEngine;
 
 public class GameManager
 {
-    public long gameId;
     private IDictionary<int, GameObject> gameObjectById;
     private IDictionary<GameObject, int> gameObjectTypes;
     private IDictionary<GameObject, Vector3> gameObjectPositions;
@@ -22,19 +21,14 @@ public class GameManager
         return INSTANCE;
     }
 
-    public void getGameId()
-    {
-        SocketClientProxy.getInstance().getGameId();
-    }
-
     public void startGame()
     {
-        SocketClientProxy.getInstance().startGame(gameId);
+        SocketClientProxy.getInstance().startGame();
     }
 
     public void finishGame()
     {
-        SocketClientProxy.getInstance().finishGame(gameId);
+        SocketClientProxy.getInstance().finishGame();
     }
 
     public void addGameObject(int type, GameObject gameObject)
@@ -79,7 +73,6 @@ public class GameManager
             var position = gameObjectPositionsChanged[obj];
             gameObjectPositions[obj] = position;
             socketClientProxy.syncPosition(
-                gameId,
                 obj.name,
                 gameObjectTypes[obj],
                 obj.GetInstanceID(),
@@ -90,25 +83,6 @@ public class GameManager
             );
         }
         gameObjectPositionsChanged.Clear();
-    }
-
-    public void syncScore(long score)
-    {
-        SocketClientProxy.getInstance().syncScore(gameId, score);
-    }
-
-    public void deleteGameObject(GameObject gameObject)
-    {
-        if (gameObjectById.ContainsKey(gameObject.GetInstanceID()))
-        {
-            SocketClientProxy.getInstance().deleteGameObject(
-                gameId,
-                gameObject.GetInstanceID()
-            );
-        }
-        gameObjectById.Remove(gameObject.GetInstanceID());
-        gameObjectPositions.Remove(gameObject);
-        gameObjectTypes.Remove(gameObject);
     }
 
     public void clear()

@@ -1,4 +1,4 @@
-# space-shooter
+# breaking-game
 a socket game build on ezyfox-server and unity
 
 # Introduction 

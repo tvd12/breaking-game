@@ -8,7 +8,8 @@ import lombok.Data;
 @Data
 @EzyArrayBinding
 public class SyncPositionRequest {
-
+	private String objectType;
+	private int objectId;
 	private double x;
 	private double y;
 	private double z;

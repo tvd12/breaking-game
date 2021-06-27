@@ -82,7 +82,7 @@ public class ClientTest {
 			System.out.println("hello: " + data);
 			app.udpSend(
 				Commands.SYNC_POSITION,
-				EzyEntityFactory.newArrayBuilder().append(1, 2, 3).build()
+				EzyEntityFactory.newArrayBuilder().append("character", 1, 1, 2, 3).build()
 			);
 			app.send(
 				Commands.SYNC_DATA,
