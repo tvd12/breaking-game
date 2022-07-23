@@ -4,8 +4,8 @@
 	
 	<parent>
 		<groupId>com.tvd12</groupId>
-		<artifactId>ezyfox-server</artifactId>
-		<version>1.0.0</version>
+		<artifactId>ezyfox</artifactId>
+		<version>1.0.5</version>
 	</parent>
 	
 	<groupId>org.youngmokeys</groupId>
@@ -20,7 +20,7 @@
 		<directory.apps>apps</directory.apps>
 		<directory.entries>entries</directory.entries>
 		<directory.common>common</directory.common>
-		<ezy.version>1.1.9</ezy.version>
+		<ezy.version>1.2.4</ezy.version>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 	</properties>
 
